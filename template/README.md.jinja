@@ -1,0 +1,152 @@
+# {{ webapp_name }} Web App
+
+This is a Streamlit application template with integrated Azure AD authentication and role-based access control, using
+Azure App Configuration for user access and authorization.
+
+## Overview
+
+This repository provides a modular Streamlit application featuring:
+
+- Azure AD Authentication: Secure user login via the Microsoft identity platform.
+- Role-Based Access Control: Flexible user management using Azure App Configuration.
+- Modular Design: Clear separation between authentication and application code.
+- CI/CD Pipeline: GitLab CI integration for automated deployment to Azure Web App.
+
+## Repository Structure
+
+The application is organized as follows:
+
+```
+├── auth/                           # Authentication module
+│   └── azure_auth.py               # Azure AD authentication and role management
+├── config/                         # Configuration files
+│   └── users.json                  # User role assignments
+├── scripts/                        # Utility scripts
+│   └── manage_app_config_roles.py  # Role management tool
+├── user_app/                       # User application code (add your content here)
+│   ├── content.py                  # Define your UI components here
+│   └── structure.py                # Application structure and layout
+├── .gitlab-ci.yml                  # CI pipeline definition
+├── Dockerfile                      # Container definition
+├── README.md                       # Project documentation
+├── app.py                          # Main application entry point (authentication wrapper)
+└── requirements.txt                # Python dependencies
+```
+
+## Quickstart
+
+### What you need
+
+- A service principal with permissions to connect to and update the Azure resources that the application will deploy.
+- A second service principal for the application itself, used to enable Azure AD authentication for users.
+
+### Setup
+
+#### Web App Environment Variables
+
+The application requires the following environment variables to be set in your Web App's App Settings:
+
+```sh
+# Authentication
+AZURE_AUTH_CLIENT_ID=<your-azure-ad-app-client-id>
+AZURE_AUTH_CLIENT_SECRET=<your-azure-ad-app-client-secret>
+AZURE_AUTH_TENANT_ID=<your-azure-ad-tenant-id>
+AZURE_AUTH_REDIRECT_URI=<your-auth-callback-url>
+
+# App Configuration Endpoint
+AZURE_APPCONFIG_ENDPOINT=<your-app-config-endpoint>
+```
+
+If you use the `azure-resource-creator` Copier template and select `streamlit_app` as the `use_case`, these parameters
+should already be populated in the deployed web app.
+
+If you create the resources separately, please add these values manually. The `AZURE_AUTH_XXX` variables are the details
+of your service principal, which the Streamlit application uses to authenticate users. You can find the value for
+`AZURE_APPCONFIG_ENDPOINT` in the App Configuration resource. The value for `AZURE_AUTH_REDIRECT_URI` is typically in
+the format `https://<webapp-name>.azurewebsites.net/oauth2callback`.
+
+### Customizing the Application
+
+#### User Role Management
+
+User roles are managed in Azure App Configuration using the following structure:
+
+- **Key Format:** `users:{email}:roles`
+- **Value:** A JSON array of role names (for example, `["Admin"]` or `["Member"]`).
+
+To update user roles, use the included management script:
+
+```sh
+python scripts/manage_app_config_roles.py \
+  --file config/users.json \
+  --endpoint "$AZURE_APPCONFIG_ENDPOINT"
+```
+
+Alternatively, you can commit your changes and let the GitLab CI step `setup_app_roles` update the roles for you.
+
+Role names are not limited to just `Admin` and `Member`—these are only examples. You can define any role names and as
+many as needed, as long as they are used consistently with the role logic in the `user_app` directory.
+
+#### Adding Custom Content
+
+To add your own application content, simply modify the files in the `user_app` directory:
+
+- **Define Role-Specific Content:** Edit `content.py` to implement the UI for each role. For example:
+
+```python
+import streamlit as st
+
+def render_admin_content():
+    """Content to show for users with the Admin role."""
+    st.success("🔧 Admin Panel Access")
+    st.write("You have administrator privileges!")
+    # Add your admin-specific UI components here
+    st.subheader("My Admin Dashboard")
+    # ...
+
+def render_member_content():
+    """Content to show for users with the Member role."""
+    st.info("👤 Member Access")
+    st.write("You have member access!")
+    # Add your member-specific UI components here
+    # ...
+```
+
+### Redirect URI
+
+To ensure authentication works successfully with your service principal, make sure the redirect URI is added to the
+Azure AD app registration. For guidance on configuring redirect URIs, see the
+[Microsoft documentation](https://learn.microsoft.com/en-us/entra/identity-platform/how-to-add-redirect-uri#add-a-redirect-uri).
+
+## Troubleshooting
+
+### Role Refresh
+
+If role updates aren't visible, users can click "Refresh Roles" in the app to clear their role cache.
+
+## Notes for Contributors
+
+### Development Environment Setup
+
+- Create and activate a virtual Python environment with the Python version, e.g., specified in `.python-version`.
+- Use pip to install and update `pip`, `wheel`, `setuptools`, and `pre-commit`.
+- Use pip to install the requirements in `requirements.txt`.
+- Install the git pre-commit hook.
+
+### How to Run the Tests
+
+Use `pytest` to run the tests:
+
+```sh
+python -m pytest test
+```
+
+For local development, you can create a `.env` file with these variables.
+
+### Infrastructure, Secrets, and Environment Variables Used in the Tests
+
+To run certain operations, set the following environment variables:
+
+- `ARM_CLIENT_ID`: The Client ID used for updating existing resources.
+- `ARM_CLIENT_SECRET`: The Client Secret used for updating existing resources.
+- `ARM_TENANT_ID`: The Tenant ID used for updating existing resources.

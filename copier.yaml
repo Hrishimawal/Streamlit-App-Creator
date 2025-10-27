@@ -1,0 +1,38 @@
+webapp_name:
+  type: str
+  help: |
+    The name of the streamlit application.
+  regex: "^[a-zA-Z][a-zA-Z0-9-]{2,30}$"
+  placeholder: "my-streamlit-app"
+
+azure_appconfig_endpoint:
+  type: str
+  help: |
+    The Azure App Configuration endpoint URL.
+  regex: "^https://[a-zA-Z0-9.-]+$"
+  placeholder: "https://<your-app-config-name>.azconfig.io"
+
+azure_container_registry_name:
+  type: str
+  help: |
+    The name of the Azure Container Registry (ACR) to push the Docker image to.
+  regex: "^[a-zA-Z][a-zA-Z0-9-]{2,30}$"
+  placeholder: "myacrname"
+
+docker_image_name:
+  type: str
+  help: |
+    The name of the Docker image to be built and pushed to ACR.
+  regex: "^[a-zA-Z][a-zA-Z0-9-]{2,30}$"
+  placeholder: "mydockerimage"
+
+resource_group:
+  type: str
+  help: |
+    The name of the Azure Resource Group where the Web App is deployed.
+  regex: "^[a-zA-Z][a-zA-Z0-9-]{2,30}$"
+  placeholder: "my-resource-group"
+
+_subdirectory: template
+
+_min_copier_version: "9.3.0"
