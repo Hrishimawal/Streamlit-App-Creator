@@ -1,0 +1,16 @@
+test:
+  stage: test
+  resource_group: test
+  image: python:3.12-slim
+  script:
+    - apt-get update && apt-get install -y git
+    - pip install -U pip wheel setuptools && pip install -r requirements.txt
+    - python -m pytest test
+
+style:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - apt-get update && apt-get install -y git
+    - pip install pre-commit
+    - pre-commit run --all-files
